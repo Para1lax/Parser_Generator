@@ -1,0 +1,45 @@
+@grammar calc
+#grammar java.lang.*
+
+@attr { double val = 0.0; }
+#attr java.lang.*
+
+@start expr
+@skip -> [ \r\n]+
+
+expr -> expr '+' term
+{ $it.val = $0.val + $2.val; }
+expr -> expr '-' term
+{ $it.val = $0.val - $2.val; }
+expr -> term
+{ $it.val = $0.val; }
+
+term -> term '*' factor
+{ $it.val = $0.val * $2.val; }
+term -> term '/' factor
+{
+    if ($2.val == 0.0) {
+        throw new RuntimeException("Division by zero");
+    }
+    else {
+        $it.val = $0.val / $2.val;
+    }
+}
+term -> factor
+{ $it.val = $0.val; }
+
+factor -> factor '**' atom
+{ $it.val = Math.pow($0.val, $2.val); }
+factor -> atom
+{ $it.val = $0.val; }
+
+atom -> '(' expr ')'
+{ $it.val = $0.val; }
+atom -> '|' expr '|'
+{ $it.val = Math.abs($1.val); }
+atom -> 'pi'
+{ $it.val = Math.PI; }
+atom -> 'e'
+{ $it.val = Math.E; }
+atom -> [0-9]+ ('.' [0-9]+)?
+{ $it.val = Double.parseDouble($0.string); }
